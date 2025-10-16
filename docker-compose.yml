@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend #backendのコンテナの場所
+    volumes:
+      - ./backend:/app
+      - bundle-volume:/usr/local/bundle
+    environment:
+      BINDING: 0.0.0.0
+      RAILS_ENV: development
+      DB_HOST: db
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+    command: sleep infinity # ターミナルでコードを実行するためのコマンド
+    depends_on: #dbが先に立ち上がってから起動
+      - db
+    ports:
+      - '3000:3000'
+
+  frontend:
+    build:
+      context: ./frontend # Dockerfileの場所
+    volumes:
+      - ./frontend:/app # frontendのコードをマウント
+    command: sleep infinity
+    ports:
+      - '5173:5173'
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  bundle-volume:
+  pgdata:
