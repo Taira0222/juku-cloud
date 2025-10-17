@@ -1,6 +1,9 @@
 # Juku Cloud
 
 サービスURL: https://www.juku-cloud.com
+リポジトリURL:
+- フロントエンド: https://github.com/Taira0222/juku-cloud-frontend
+- バックエンド: https://github.com/Taira0222/juku-cloud-backend
 
 ![Juku Cloud の宣材写真](./assets/top.png)
 
@@ -223,10 +226,47 @@ juku-cloud-backend/
 
 ---
 ## ER図
+下図は、生徒・講師・授業・特性の関連を中心に設計したER図です。
 
 ![ER図](./assets/ER.png)
 
-テーブルの説明を加える
+### Userテーブル
+塾内の講師・管理者を表すテーブルです。指導担当情報やログイン認証を管理します。
+
+- `User`は管理者と講師の2つの権限を持ち、`enum` の `role` カラムで区別しています。
+- 認証は`Devise Token Auth`を利用し、トークンベースの認証を実装しています。
+- 講師・管理者ともに授業を担当でき、`UserClassSubject`や`UserAvailableDay`を介して担当科目・指導可能日を管理します。
+
+#### 管理者（role = admin）
+- `owner` として `School` を 1:1 で所有します。
+  → 管理者が自分の塾だけを管理できる構成にしています。
+- `Invite` テーブルを介して講師（User）を招待できます。
+
+#### 講師（role = teacher）
+- `School` テーブルと1対多の関係を持ち、1つの学校に複数の講師が所属できます。
+
+### Studentテーブル
+- `Student` は `School` に所属し、`StudentClassSubject` を介して複数の`ClassSubject`を持ちます。
+- `Student` は `StudentTrait` を直接持ち、生徒の特性を管理します。
+- `LessonNote` の場合は、`StudentClassSubject` を介して科目ごとに引き継ぎ事項を管理します。
+- 学年は `小学・中学・高校` の3段階をenumで管理し、`grade` カラムで具体的な学年（1〜3など）を管理します。
+- 自作の`validate`で小学1年生〜高校3年生までの範囲を制限しています。
+
+### StudentTraitテーブル
+このテーブルでは、指導をするうえで把握しておくべき生徒の特性を管理します。
+
+- `StudentTrait` は `Student` に属し、生徒の特性を管理します。
+- `trait_type`はenum で `good`, `careful` の2種類を管理しています。
+
+### LessonNoteテーブル
+このテーブルでは、授業の際に必要な引継ぎ事項を管理します。
+
+- `LessonNote` は `Student` とは直接ではなく、`StudentClassSubject` を介して関連しています。
+- 講師削除時に履歴を保持するため、DB上では `nullify` を採用しています。
+- アプリ側では `created_by` は必須とし、削除後も `created_by_name` に名前を残します。
+- `last_updated_by`は任意とし、上記同様に`last_updated_by_name`カラムを追加しています。
+- `note_type`はenum で `homework`, `lesson`, `other` の3種類を管理しています。
+- `expire_date`はその引継ぎ事項の有効期限を管理し、期限切れの引継ぎ事項はバリデーションで作成・更新できないようにしています。
 
 ---
 ## 設計思想 / こだわり
