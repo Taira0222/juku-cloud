@@ -1,7 +1,6 @@
 # Juku Cloud
 
 サービスURL: https://www.juku-cloud.com
-リポジトリURL:
 - フロントエンド: https://github.com/Taira0222/juku-cloud-frontend
 - バックエンド: https://github.com/Taira0222/juku-cloud-backend
 
@@ -21,6 +20,31 @@
 この課題を解決するために開発したのが Juku Cloud です。
 Juku Cloudは、生徒の特性を「良い特性」と「注意が必要な特性」に分類し、クラウド上で一元管理します。これにより講師間の情報共有が容易になり、生徒一人ひとりに最適な指導を提供できます。
 さらに、授業の引き継ぎ事項を科目ごとに管理できるため、引き継ぎにかかる時間を大幅に削減し、より教育そのものに集中できる環境を実現します。
+
+## ペルソナ
+### 対象 1: A さん（塾長・45歳）
+
+- 生徒数：50名の個別指導塾を運営
+- ITリテラシー：Excelは使用できるが、SaaS導入経験はなし
+- 主な課題：講師5名を雇っているが、生徒の特性や指導方針が属人化しており、授業の質にばらつきがある
+- ゴール：品質を維持しながら2教室目を開校したい
+- Juku Cloudでの解決：生徒特性や引継ぎ情報をクラウドで共有し、誰が教えても一定品質の指導を実現
+
+### 対象 2: B さん（新規オーナー・30歳）
+
+- 生徒数：20名
+- ITリテラシー：Google Driveで資料管理している
+- 主な課題：生徒情報が自分の頭の中にあり、アルバイト講師に共有できないため雇用拡大に踏み切れない
+- ゴール：講師を採用して1年以内に生徒50名へ拡大したい
+- Juku Cloudでの解決：生徒情報を体系的に管理し、引継ぎや方針共有をスムーズにすることで人材育成を効率化
+
+### 対象 3: C さん（大学生講師・20歳）
+
+- 所属：個別指導塾でアルバイト講師として勤務
+- ITリテラシー：Google WorkspaceやMicrosoft Officeを日常的に使用
+- 主な課題：塾長からの指示が口頭中心で抽象的、生徒ごとの対応に迷うことがある
+- ゴール：生徒ごとの注意点や過去の引継ぎを確認し、安心して授業に臨みたい
+- Juku Cloudでの解決：特性・引継ぎ情報をリアルタイムに参照でき、授業前の不安を軽減
 
 ---
 
@@ -58,6 +82,21 @@ Juku Cloudは、フロントエンドとバックエンドを分離したSPA構�
 - CI/CD：GitHub ActionsでECRへのビルド・プッシュ、ECSへのデプロイを自動化。
 - インフラ：ECS / RDS / S3 / CloudFront / Route53 / ACM / ALB / Secrets Manager / CloudWatch を利用。
 
+### SPA構成の採用理由
+
+#### UX面
+- ペルソナはITリテラシーが高くないため、直感的に操作できるUI/UXが求められる。
+- ページ遷移を減らし、一覧→詳細→編集をスムーズに行えるようSPA構成を採用。
+
+#### 技術面
+- フロントエンドをReact、バックエンドをRails APIとして分離することで、
+  将来的にモバイルアプリなど他クライアントからもAPIを再利用しやすい。
+- 静的アセット（S3+CloudFront）で配信し、ハッシュ付き`assets`の長期キャッシュ・
+  `index.html`の短期キャッシュを分離管理できる。
+
+#### 運用面
+- サーバー側でビューを描画しないため、ECSタスクの負荷が軽減し、コスト面でも有利。
+
 ### アーキテクチャー図(概要)
 
 ```
@@ -84,22 +123,106 @@ Juku Cloudは、フロントエンドとバックエンドを分離したSPA構�
 | CI/CD	                 | Github Actions(CloudFront/S3, ECR/ECSデプロイ, OIDC認証）                                   | 
 | インフラ               | AWS(ECS / ECR / RDS / CloudFront / S3 / Route53 / ACM / ALB / Secrets Manager / CloudWatch) | 
 | テスト                 | Vitest / Testing Library / MSW / RSpec / SimpleCov                                          | 
-| 静的解析               | ESLint / Prettier / RuboCop / Bullet                                                        | 
-| その他(フロントエンド) | Tailwind CSS / Shadcn UI / Zustand / TanStack Query / Axios / Zod                           | 
-| その他(バックエンド)   | Kaminari / Alba / Letter Opener Web / Bullet / Bundler Audit                                | 
+| 静的解析               | ESLint / Prettier / RuboCop / Bullet / Bundler Audit                                       | 
+| その他(フロントエンド) | Tailwind CSS / Shadcn UI / Zustand / TanStack Query / Zod /                | 
+| その他(バックエンド)   | Kaminari / Alba / Letter Opener Web                                  | 
 
 ### フロントエンド
-それぞれの技術を選定した理由や工夫した点などを記載する
+#### React
+- 既存プロジェクトに導入するわけでもなく、これから事業として作ってくアプリで長期視点で安定版ではなく、最新のバージョンを採用しました。
+- 高速なビルド・開発環境を提供するViteを採用し、ReactでコンポーネントベースのUIを構築。
+- SPAを導入するうえでVueも検討しましたが、以下の点でReactを選択しました。
+  - Tailwind CSSとの親和性が高く、UIライブラリ系(shadcn/uiなど)が充実している。
+  - TypeScriptとの親和性が高く、型安全な開発がしやすい。
+#### Vite
+- React Create Appは公式から非推奨となり、Viteが主流となっていることから採用の検討を開始しました。
+- React 公式に書いてあるほかのビルドツール(Parcel,Rsbuildなど)と比較してもViteが最も高速であり、`Vitest`との相性もいいため採用しました。
+#### TypeScript
+- 型安全なコードを書くことで、バグの早期発見・保守性向上を図るために採用しました。
+- Zodと組み合わせて、APIレスポンスのバリデーションと型定義を一元管理できます
+
 ### バックエンド
+#### Ruby
+- 長期運用を見据え、安定性よりも将来性を重視して最新バージョンを採用しました。
+- 日本で開発された言語ということもあり、ほかの言語と比べて学習コストが低く、個人開発に適していると判断しました。
+- オブジェクト指向言語であり、責任分割や設計パターンを適用しやすい点も評価しました。
+#### Ruby on Rails (APIモード)
+- RailsはRubyの代表的なWebフレームワークで、豊富なライブラリ・コミュニティが存在するため採用しました。
+- APIモードを採用することで、フロントエンドとバックエンドを分離し、将来的にモバイルアプリなど他クライアントからもAPIを再利用しやすい構成としました。
+
 ### データベース
+#### PostgreSQL
+MySQLも検討しましたが、以下の理由でPostgreSQLを採用しました。
+- 今後の拡張性を考えて、PostgreSQLの方が高度な機能が多く、柔軟なデータ操作が可能。
+- 生徒、講師、引継ぎ事項、科目、生徒の特性など、複数テーブルにまたがる整合性が非常に重要であり、PostgreSQLの堅牢なトランザクション管理が有利。
+- MySQLの素早い動作よりも、PostgreSQLの正確で壊れないデータ構造の方が重要と判断。
+
 ### 認証
+#### devise token auth
+- `devise_token_auth` を採用し、`access-token` / `client` / `uid` を `LocalStorage`に保持しています。  
+- Axios インターセプタで各リクエスト時にヘッダへ付与し、レスポンスヘッダに含まれる新しいトークンを用いてローテーションを行います。  
+- サーバ側にセッションを保持しないため Rails APIモードに最適 であり、Cookieベースの認証と比較して CSRF攻撃のリスクを低減 できます。  
+- 一方で LocalStorage は XSS に弱いため、CloudFront で CSP（Content Security Policy）を設定して外部スクリプト実行を制限しています。  
+  詳細は [こちら](https://github.com/Taira0222/juku-cloud?tab=readme-ov-file#%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3) を参照。
+
+
 ### 環境構築
+#### Docker
+- 開発環境と本番環境の差異を最小化し、一貫した動作環境を提供するために採用しました。  
+- Docker Compose により、Rails・PostgreSQL・React の各サービスをコンテナで統合管理。  
+- チーム開発時も `docker compose up` だけで環境を再現可能です。
+#### Devcontainer
+- VS Code 上で自動的に開発環境を構築できるよう、Devcontainer を導入しました。  
+- Ruby や Node.js、AWS CLI などをあらかじめイメージに含め、セットアップの手間を最小化しています。
+- コンテナ起動時もコマンドが不要で、「コンテナを再度開く」だけで開発環境にアクセスできます。
+
 ### CI/CD
+#### Github Actions
+- GitHub Actions を採用し、コードの変更を自動的にビルド・テスト・デプロイするワークフローを構築しました。  
+- バックエンドは ECR への Docker イメージのビルド・プッシュ、ECS へのデプロイ、DBのmigrateを自動化。  
+- フロントエンドは S3 へのビルド済みアセットのデプロイと CloudFront キャッシュの最適化を自動化。
 ### インフラ
+#### AWS
+- 無料のRenderも検討しましたが、豊富なサービスと高い拡張性を持つAWSを採用しました。
+- それぞれのサービスの選定理由については [こちら](https://github.com/Taira0222/juku-cloud?tab=readme-ov-file#%E5%85%A8%E4%BD%93%E3%81%AE%E6%A7%8B%E6%88%90%E3%81%AE%E6%A6%82%E8%A6%81) を参照してください。
 ### テスト
+#### Vitest, Testing Library, MSW
+- Jestも検討しましたが、Viteとの親和性が高く、高速なVitestを採用しました。
+- React Testing Library、MSWを組み合わせて、単体テストだけではなく、APIモックを利用した結合テストも実施しています。
+#### RSpec / SimpleCov
+- 以前作成したTodo アプリではMinitestを採用しましたが、テストの網羅性を高めるためにRSpecを採用しました。
+- SimpleCovを導入し、コードカバレッジを測定。目標カバレッジ80%以上を設定しています。
 ### 静的解析
+#### ESLint / Prettier
+- ESLint と Prettier を組み合わせて、コードの一貫性と可読性を確保しています。
+#### RuboCop / Bullet / Bundler Audit
+- RuboCopを導入し、コードスタイルと品質を自動的にチェックしています。
+- Bullet を導入し、N+1クエリなどのパフォーマンス問題を検出。
+- Bundler Audit を使用して、依存関係の脆弱性を定期的にチェックしています。
 ### その他(フロントエンド)
+#### Tailwind CSS
+- Shadcn UI を利用するために Tailwind CSS を採用しました。
+#### Shadcn UI
+- Tailwind CSS をベースにしたコンポーネントライブラリで、今回のような業務アプリに適したUIコンポーネントが豊富に揃っているため採用しました。
+#### Zustand
+- Context API よりもシンプルなグローバルステート管理が可能で、`useState`ライクな書き方で直感的に扱えて学習コストが低いため採用しました。
+#### TanStack Query
+- サーバー状態の管理が容易で、データフェッチング・キャッシュ・同期化・更新を効率的に行えるため採用しました。
+#### Zod
+- バックエンドだけでなく、フロントエンドでもバリデーションを一元管理できるため、一部のスキーマ定義に採用しました。
 ### その他(バックエンド)
+#### Kaminari
+- ページネーションを非常に簡単に実装できることがとても魅力的であったため採用しました。
+```ruby
+# page = params[:page] 
+# per_page = params[:per_page] 
+students.preload(ASSOCS).order(:id).page(page).per(per_page)
+```
+#### Alba
+- 最初は自作のシリアライザを使用していましたが、Albaを採用することでAPIレスポンスのスキーマを統一的に管理できるようになりました。
+#### Letter Opener Web
+- 開発環境でメール送信をブラウザ上で確認できるため、採用しました。本番ではSESを使用しています。
+
 
 ---
 
@@ -148,9 +271,8 @@ juku-cloud-backend/
 ├─ config/
 │  ├─ environments/          # 環境別設定
 │  └─ initializers/          # devise/cors/bullet 等の初期化
-├─ db/
-│  ├─ migrate/               # マイグレーション一式（詳細は /docs ）
-│  └─ seed_data/             # YAMLシード（認証情報は含めない方針）
+├─ db/                       
+│  └─ migrate/               # マイグレーション一式
 ├─ ecs/
 │  └─ taskdef.json           # ECSタスク定義（CIでレンダリング）
 └─ spec/
@@ -221,6 +343,13 @@ juku-cloud-backend/
 - Secrets ManagerでDBパスワードやRailsのマスターキーを安全に管理。
 - セキュリティグループにより、ALB→ECS、ECS→RDSの通信のみ許可。
 - S3バケットポリシーでCloudFront経由以外の直接アクセスを拒否。
+- CloudFrontでCSP(Content Security Policy)を設定し、XSS攻撃を軽減
+   - 安全デフォルト: `default-src 'self'`（外部は原則禁止）
+   - スクリプト: `script-src 'self'`（外部実行を遮断、XSS面を縮小）
+   - スタイル: `style-src 'self' 'unsafe-inline'`（UI崩れ回避のため暫定許可。段階的に削減予定）
+   - 通信先: `connect-src 'self' https://api.juku-cloud.com`（APIのみ許可）
+   - 埋め込み禁止: `object-src 'none'` / `frame-ancestors 'none'`
+   - その他: `img-src 'self' data: blob:` / `font-src 'self' data:` / `worker-src 'self' blob:` / `form-action 'self'`
 
 
 
