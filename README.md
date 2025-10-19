@@ -4,7 +4,7 @@
 - フロントエンド: https://github.com/Taira0222/juku-cloud-frontend
 - バックエンド: https://github.com/Taira0222/juku-cloud-backend
 
-![Juku Cloud の宣材写真](./assets/top.png)
+![Juku Cloud の宣材写真](./assets/top.svg)
 
 ---
 
