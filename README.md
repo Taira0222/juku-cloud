@@ -8,7 +8,7 @@
 
 ---
 
-### 生徒一人一人の特性をクラウドで管理できる
+### 生徒一人ひとりの特性をクラウドで可視化・共有し、指導を標準化する
 個別指導塾を運営するうえで、特に生徒の特性を把握し指導することは非常に重要です。これらは講師たちが潜在的に意識していますが、言語化されることなく属人的なものになりがちです。Juku Cloudは生徒の特性を「いい特性」、「注意する特性」に分類し、クラウド上で一元管理することで、講師間での情報共有を促進し、生徒一人一人に最適な指導を提供することができます。
 
 ## 開発背景
@@ -61,7 +61,6 @@ Juku Cloudは、生徒の特性を「良い特性」と「注意が必要な特�
   - 引き継ぎ事項は講師・管理者ともに作成・編集が可能(削除は管理者のみ)
   - 引き継ぎ事項は科目ごとに紐づいているため、科目を削除すると自動で引き継ぎ事項も削除される
   - 引き継ぎ事項は作成日時の降順で表示
-  - 
 - 生徒の特性管理機能
   - `dashboard`では「いい特性」、「注意する特性」を一覧で確認可能
   - 講師は`dashboard`で生徒の特性の一覧のみ見ることが可能
@@ -211,7 +210,7 @@ Juku Cloudは、フロントエンドとバックエンドを分離したSPA構�
 #### 運用面
 - サーバー側でビューを描画しないため、ECSタスクの負荷が軽減し、コスト面でも有利。
 
-### アーキテクチャー図(概要)
+### アーキテクチャ図(概要)
 
 ```
 
@@ -234,11 +233,11 @@ Juku Cloudは、フロントエンドとバックエンドを分離したSPA構�
 | データベース           | PostgreSQL 15.14                                                                            | 
 | 認証                   | devise token auth 1.2                                                                       | 
 | 環境構築               | Docker,Devcontainer                                                                         | 
-| CI/CD	                 | Github Actions(CloudFront/S3, ECR/ECSデプロイ, OIDC認証）                                   | 
+| CI/CD	                 | GitHub Actions(CloudFront/S3, ECR/ECSデプロイ, OIDC認証）                                   | 
 | インフラ               | AWS(ECS / ECR / RDS / CloudFront / S3 / Route53 / ACM / ALB / Secrets Manager / CloudWatch) | 
 | テスト                 | Vitest / Testing Library / MSW / RSpec / SimpleCov                                          | 
 | 静的解析               | ESLint / Prettier / RuboCop / Bullet / Bundler Audit                                       | 
-| その他(フロントエンド) | Tailwind CSS / Shadcn UI / Zustand / TanStack Query / Zod /                | 
+| その他(フロントエンド) | Tailwind CSS / Shadcn UI / Zustand / TanStack Query / Zod                | 
 | その他(バックエンド)   | Kaminari / Alba / Letter Opener Web                                  | 
 
 ### フロントエンド
@@ -275,8 +274,8 @@ MySQLも検討しましたが、以下の理由でPostgreSQLを採用しまし�
 #### devise token auth
 - `devise_token_auth` を採用し、`access-token` / `client` / `uid` を `LocalStorage`に保持しています。  
 - Axios インターセプタで各リクエスト時にヘッダへ付与し、レスポンスヘッダに含まれる新しいトークンを用いてローテーションを行います。  
-- サーバ側にセッションを保持しないため Rails APIモードに最適 であり、Cookieベースの認証と比較して CSRF攻撃のリスクを低減 できます。  
-- 一方で LocalStorage は XSS に弱いため、CloudFront で CSP（Content Security Policy）を設定して外部スクリプト実行を制限しています。  
+- サーバ側にセッションを保持しないためRails APIモードに最適であり、Cookieベースの認証と比較して CSRF攻撃のリスクを低減 できます。  
+- 一方で LocalStorageはXSSに弱いため、CloudFrontでCSP（Content Security Policy）を設定して外部スクリプト実行を制限しています。  
   詳細は [こちら](https://github.com/Taira0222/juku-cloud?tab=readme-ov-file#%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3) を参照。
 
 
@@ -291,7 +290,7 @@ MySQLも検討しましたが、以下の理由でPostgreSQLを採用しまし�
 - コンテナ起動時もコマンドが不要で、「コンテナを再度開く」だけで開発環境にアクセスできます。
 
 ### CI/CD
-#### Github Actions
+#### GitHub Actions
 - GitHub Actions を採用し、コードの変更を自動的にビルド・テスト・デプロイするワークフローを構築しました。  
 - バックエンドは ECR への Docker イメージのビルド・プッシュ、ECS へのデプロイ、DBのmigrateを自動化。  
 - フロントエンドは S3 へのビルド済みアセットのデプロイと CloudFront キャッシュの最適化を自動化。
@@ -557,7 +556,7 @@ juku-cloud-backend/
 
 ##### Zod を導入してフロントでもバリデーション
 
-[LessonNoteの有効期限バリデーション例](./assets/gif/tech/ZodVaridation.gif)
+[LessonNoteの有効期限バリデーション例](./assets/gif/tech/ZodValidation.gif)
 
 上記は授業引継ぎを作成する際の有効期限のバリデーションスキーマです。
 有効期限って本来は今日以降の日付じゃないとダメですよね？
@@ -1031,7 +1030,7 @@ Branch Coverage: 89.52% (94 / 105)
 ### React + TypeScript の実装が初めてで常に壁にぶつかった
 基礎は学んでいたので、今回の実装に入る際にはどのような技術をつかって実装するかはイメージできていました。
 しかし、実際にコードを書き始めると、TypeScriptの型定義やReactのコンポーネント設計で多くの壁にぶつかりました。 
-そして、`Tanstack Query` を知る前までは`Zustand` で`server state` を管理していましたが、非効率的であることに気づき、途中から`Tanstack Query` に切り替えました。なので最初に実装した`Teacher` 関連のコードは`Zustand` を使ったままになっています。
+そして、`TanStack Query` を知る前までは`Zustand` で`server state` を管理していましたが、非効率的であることに気づき、途中から`TanStack Query` に切り替えました。なので最初に実装した`Teacher` 関連のコードは`Zustand` を使ったままになっています。
 
 ### AWS の ECS / Fargate 構成、CDを自力で構築するのが大変だった
 学習でAWSの基礎は学んでいましたが、ECS / Fargate構成での本格的なアプリ構築は初めてでした。
