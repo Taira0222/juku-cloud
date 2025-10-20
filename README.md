@@ -4,6 +4,9 @@
 - フロントエンド: https://github.com/Taira0222/juku-cloud-frontend
 - バックエンド: https://github.com/Taira0222/juku-cloud-backend
 
+デモ用のアカウントは載せていません。
+必要であれば、[こちら](https://x.com/Taira_En0222)にDM頂けると対応します。
+
 ![Juku Cloud の宣材写真](./assets/top.svg)
 
 ---
