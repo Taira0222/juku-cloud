@@ -51,7 +51,7 @@ Browser
 | | Front end | Back end |
 | --- | --- | --- |
 | Tests | Vitest, Testing Library, MSW | RSpec |
-| Coverage | statements 97%, branches 92% | lines 98%, branches 89% |
+| Coverage | statements 96%, branches 84% | lines 97%, branches 90% |
 | CI on every push | ESLint, tests, `npm audit` | tests, RuboCop, Brakeman, bundler-audit |
 
 - N+1 queries were caught with Bullet and fixed with `preload`, `upsert_all` and `delete_all`.
